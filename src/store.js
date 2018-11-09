@@ -1,6 +1,7 @@
 import { extendObservable } from 'mobx';
 import config from './simulation/config.json';
 import { defaultJavascriptFunctionCode } from './view/Components/defaultCode';
+import { NOT_STARTED} from './view/constants'
 
 class passengerStore {
   constructor() {
@@ -21,7 +22,7 @@ class passengerStore {
       passengers: [[], []],
       destination: destination,
       score: [0, 0],
-      mode: 'play',
+      mode: NOT_STARTED,
       player1Func: undefined,
       player2Func: undefined,
       func: defaultJavascriptFunctionCode,
@@ -38,10 +39,10 @@ class passengerStore {
       this.position[gameId][playerId] = newPosition;
     }
   }
-  updatePassengers(gameId, passengersArr) {
-    if (this.passengers[gameId].length !== passengersArr.length) {
-      this.passengers[gameId] = passengersArr;
-    }
+  resetGame() {
+    this.updatePosition(0,0,{x:0,y:0}, 0);
+    this.updatePosition(0,1,{x:0,y:0}, 0);
+    this.direction = [['right', 'down'], ['right', 'down']];
   }
   updateDirection(gameId, playerId, newDirection) {
     var direction = 'right';

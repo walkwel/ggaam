@@ -10,12 +10,6 @@ function Simulation(config, bot1clb, bot2clb, botsQuantity, singleWindow=false){
     if(!this.config.height||typeof this.config.height!=="number"){
         this.config.height = 800;
     }
-    if(!this.config.minPassengers||typeof this.config.minPassengers!=="number"){
-        this.config.minPassengers = 10;
-    }
-    if(!this.config.maxPassengers||typeof this.config.maxPassengers!=="number"){
-        this.config.maxPassengers = 20;
-    }
     if(!this.config.time||typeof this.config.time!=="number"){
         this.config.time = 90;
     }
@@ -24,9 +18,6 @@ function Simulation(config, bot1clb, bot2clb, botsQuantity, singleWindow=false){
     }
     if(!this.config.playerSize||typeof this.config.playerSize!=="number"){
         this.config.playerSize = 20;
-    }
-    if(!this.config.passengerSize||typeof this.config.passengerSize!=="number"){
-        this.config.passengerSize = 20;
     }
     if(!this.config.roadWidth||typeof this.config.roadWidth!=="number"){
         this.config.roadWidth = 30;
@@ -43,7 +34,6 @@ function Simulation(config, bot1clb, bot2clb, botsQuantity, singleWindow=false){
     if(!this.config.player2StartingDirection||typeof this.config.player2StartingDirection!=="string"){
         this.config.player2StartingDirection = "down";
     }
-    this.collectives = [[],[]];
     this.bots = [new Array(botsQuantity), new Array(botsQuantity)];
     var minX = this.config.player1StartingPoint.x<this.config.player2StartingPoint.x?this.config.player1StartingPoint.x:this.config.player2StartingPoint.x;
     var maxX = this.config.player1StartingPoint.x>this.config.player2StartingPoint.x?this.config.player1StartingPoint.x:this.config.player2StartingPoint.x;
@@ -137,40 +127,26 @@ function Simulation(config, bot1clb, bot2clb, botsQuantity, singleWindow=false){
     document.addEventListener('keydown', (e) => {
         var gamesQuant = 2;
         for(var gameId = 0; gameId < gamesQuant; gameId++){
-            if(e.key===this.config['player'+(gameId+1)+'Keys'].up){
+            if(e.key===this.config[`player${gameId+1}Keys`].up){
                 this.controlInfo.keyPressed[gameId] = "up";
             }
-            else if(e.key===this.config['player'+(gameId+1)+'Keys'].down){
+            else if(e.key===this.config[`player${gameId+1}Keys`].down){
                 this.controlInfo.keyPressed[gameId] = "down";
             }
-            else if(e.key===this.config['player'+(gameId+1)+'Keys'].left){
+            else if(e.key===this.config[`player${gameId+1}Keys`].left){
                 this.controlInfo.keyPressed[gameId] = "left";
             }
-            else if(e.key===this.config['player'+(gameId+1)+'Keys'].right){
+            else if(e.key===this.config[`player${gameId+1}Keys`].right){
                 this.controlInfo.keyPressed[gameId] = "right";
             }
-            else if(e.key===this.config['player'+(gameId+1)+'Keys'].switch){
+            else if(e.key===this.config[`player${gameId+1}Keys`].switch){
                 this.controlInfo.current[gameId] = this.controlInfo.current[gameId]<this.quantity-1?this.controlInfo.current[gameId]+1:0;
             }
         }
     });
 }
-Simulation.prototype.clearPath = function(){
-    var botsQuant = this.quantity;
-    var gamesQuant = 2;
-    for(var gameId = 0; gameId < gamesQuant; gameId++){
-        for(var botId = 0; botId < botsQuant; botId++){
-            if(
-                this.bots[gameId][botId].path.length>0&&
-                this.bots[gameId][botId].x===this.bots[gameId][botId].path[this.bots[gameId][botId].path.length-1].x*this.config.roadWidth&&
-                this.bots[gameId][botId].y===this.bots[gameId][botId].path[this.bots[gameId][botId].path.length-1].y*this.config.roadWidth
-            ){
-                this.bots[gameId][botId].path.pop();
-            }
-        }
-    }
-}
-Simulation.prototype.getDirections       = function(direction){
+
+Simulation.prototype.getDirections = function(direction){
     var botsQuant = this.quantity;
     var gamesQuant = 2;
     for(var gameId = 0; gameId < gamesQuant; gameId++){
@@ -198,13 +174,14 @@ Simulation.prototype.getDirections       = function(direction){
     }
     return direction;
 }
-Simulation.prototype.simulate            = function(){
+Simulation.prototype.simulate = function(){
     var gamesQuant = 2;
     var botsData = [new Array(this.quantity), new Array(this.quantity)];
     for(var i=0;i<gamesQuant;i++){
         for(var j=0;j<this.quantity;j++){
             botsData[i][j] = {
-                player:this.bots[i][j], collectives:this.collectives[this.singleWindow?0:i], direction: this.direction[i][j], index: j, config: this.config,
+                player:this.bots[i][j],
+                direction: this.direction[i][j], index: j, config: this.config,
                 map: this.map[i],
                 controlInfo: this.controlInfo,
                 botIndex: j,
@@ -231,17 +208,16 @@ Simulation.prototype.simulate            = function(){
         }
     }
     this.moveCharacters();
-    this.clearPath();
     return {
-        player1:this.score[0], player2:this.score[1], score:this.score, bots: this.bots, 
-        collectives: this.collectives, map: this.map[0], direction: this.direction
+        player1:this.score[0], player2:this.score[1], score:this.score, bots: this.bots,
+        map: this.map[0], direction: this.direction
     };
 }
-Simulation.prototype.generateMap         = function(){
+Simulation.prototype.generateMap = function(){
     var mapHeight = Math.ceil(this.config.height/this.config.roadWidth);
     var mapWidth = Math.ceil(this.config.width/this.config.roadWidth);
     this.map = [
-        new Array(mapHeight), 
+        new Array(mapHeight),
         new Array(mapHeight)
     ];
     for(var i=0;i<mapHeight;i++){
@@ -259,85 +235,40 @@ Simulation.prototype.generateMap         = function(){
     for(i=0;i<mapHeight;i++){
         for(j=0;j<mapWidth;j++){
             if(this.map[0][i][j]){
-                this.map[0][i][j].addNeighbors(this.map[0]);
-                this.map[1][i][j].addNeighbors(this.map[1]);
             }
         }
     }
 }
 
-Simulation.prototype.moveCharacters      = function(){
+Simulation.prototype.moveCharacters = function(){
     var botsQuant = this.quantity;
     var gamesQuant = 2;
     for(var gameId = 0; gameId < gamesQuant; gameId++){
         for(var botId = 0; botId < botsQuant; botId++){
             var direction = this.direction[gameId][botId];
             var bot = this.bots[gameId][botId];
-            if(direction.up&&this.isInsideRoad(this.direction[gameId][botId],gameId,botId)){
+            if(direction.up){
                 bot.y -= this.config.speed;
                 if(bot.y < 0)
                     bot.y = 0;
             }
-            else if(direction.down&&this.isInsideRoad(this.direction[gameId][botId],gameId,botId)){
+            else if(direction.down){
                 bot.y += this.config.speed;
                 if(bot.y + this.config.playerSize > this.config.height)
                     bot.y = this.config.height - this.config.playerSize;
             }
-            else if(direction.left&&this.isInsideRoad(this.direction[gameId][botId],gameId,botId)){
+            else if(direction.left){
                 bot.x -= this.config.speed;
                 if(bot.x < 0)
                     bot.x = 0;
             }
-            else if(direction.right&&this.isInsideRoad(this.direction[gameId][botId],gameId,botId)){
+            else if(direction.right){
                 bot.x += this.config.speed;
                 if(bot.x + this.config.playerSize > this.config.width)
                     bot.x = this.config.width - this.config.playerSize;
             }
         }
     }
-}
-Simulation.prototype.isInsideRoad = function(direction, gameId, botId){
-    var row1Id, col1Id, row2Id, col2Id;
-    if(direction.up){
-        row1Id = Math.floor( (this.bots[gameId][botId].y-1)/this.config.roadWidth );
-        col1Id = Math.floor( this.bots[gameId][botId].x/this.config.roadWidth );
-    }
-    else if(direction.down){
-        row1Id = Math.floor( (this.bots[gameId][botId].y+this.config.playerSize)/this.config.roadWidth );
-        col1Id = Math.floor( this.bots[gameId][botId].x/this.config.roadWidth );
-    }
-    else if(direction.left){
-        row1Id = Math.floor( this.bots[gameId][botId].y/this.config.roadWidth );
-        col1Id = Math.floor( (this.bots[gameId][botId].x-1)/this.config.roadWidth );
-    }
-    else if(direction.right){
-        row1Id = Math.floor( this.bots[gameId][botId].y/this.config.roadWidth );
-        col1Id = Math.floor( (this.bots[gameId][botId].x+this.config.playerSize)/this.config.roadWidth );
-    }
-
-    if(direction.up){
-        row2Id = Math.floor( (this.bots[gameId][botId].y-1)/this.config.roadWidth );
-        col2Id = Math.floor( (this.bots[gameId][botId].x+this.config.playerSize-1)/this.config.roadWidth );
-    }
-    else if(direction.down){
-        row2Id = Math.floor( (this.bots[gameId][botId].y+this.config.playerSize)/this.config.roadWidth );
-        col2Id = Math.floor( (this.bots[gameId][botId].x+this.config.playerSize-1)/this.config.roadWidth );
-    }
-    else if(direction.left){
-        row2Id = Math.floor( (this.bots[gameId][botId].y+this.config.playerSize-1)/this.config.roadWidth );
-        col2Id = Math.floor( (this.bots[gameId][botId].x-1)/this.config.roadWidth );
-    }
-    else if(direction.right){
-        row2Id = Math.floor( (this.bots[gameId][botId].y+this.config.playerSize-1)/this.config.roadWidth );
-        col2Id = Math.floor( (this.bots[gameId][botId].x+this.config.playerSize)/this.config.roadWidth );
-    }
-
-    if(
-        this.map[gameId][row1Id]&&this.map[gameId][row1Id][col1Id]&&
-        this.map[gameId][row2Id]&&this.map[gameId][row2Id][col2Id]
-    )
-        return true;
-    return false;
 }
 
 function Cell(x,y){
@@ -346,122 +277,7 @@ function Cell(x,y){
     this.f=0;
     this.g=0;
     this.b=0;
-    this.neighbors = [];
     this.previous = [undefined,undefined];
 }
-Cell.prototype.addNeighbors = function(map){
-    var x = this.x;
-    var y = this.y;
-    if(map[y+1]&&map[y+1][x]){
-        this.neighbors.push(map[y+1][x]);
-    }
-    if(map[y-1]&&map[y-1][x]){
-        this.neighbors.push(map[y-1][x]);
-    }
-    if(map[y]&&map[y][x+1]){
-        this.neighbors.push(map[y][x+1]);
-    }
-    if(map[y]&&map[y][x-1]){
-        this.neighbors.push(map[y][x-1]);
-    }
-}
-Simulation.prototype.findShortestPath = function(arr, pointA, pointB, charId){
-    var heuristic = function (a,b){
-        var x = a.x - b.x;
-        var y = a.y - b.y;
-        var d = Math.sqrt( x*x + y*y );
-        return d;
-    };
-    var removeFromArray = function(array,elt){
-        for(var i = array.length-1; i>=0; i--){
-            if(array[i] === elt){
-                array.splice(i,1);
-            }
-        }
-    };
-    var cellPointA = arr[pointA.y][pointA.x];
-    var cellPointB = arr[pointB.y][pointB.x];
-    var openSet = [];
-    var closeSet = [];
-    var path = [];
-    var current = cellPointA;
-    openSet.push(cellPointA);
-    //searching path function started here
-    while(openSet.length>0){
-        var winner = 0;
-        for(var i=0; i < openSet.length; i++){
-            if(openSet[i].f < openSet[winner].f){
-                winner = i;
-            }
-        }
-        current = openSet[winner];
-        if(current === cellPointB){
-            var temp = current;
-            path.push(temp);
-            while(temp.previous[charId]){
-                path.push(temp.previous[charId]);
-                temp = temp.previous[charId];
-            }
-            for(i=0;i<arr.length;i++){
-                for(var j=0;j<arr[0].length;j++){
-                    if(arr[i][j]){
-                        arr[i][j].previous[charId]=undefined;
-                    }
-                }
-            }
-            return path;
-        }
-        removeFromArray(openSet,current);
-        closeSet.push(current);
-        var neighbors = current.neighbors;
-        for(i=0; i < neighbors.length; i++){
-            var neighbor = neighbors[i];
-            if(!closeSet.includes(neighbor) && !neighbor.wall){
-                var tempG = current.g+1;
-                var newPath = false;
-                if(openSet.includes(neighbor)){
-                    if(tempG<neighbor.g){
-                        neighbor.g = tempG;
-                        newPath = true;
-                    }
-                }
-                else{
-                    neighbor.g = tempG;
-                    newPath = true;
-                    openSet.push(neighbor);
-                }
-                if(newPath){
-                    neighbor.h = heuristic(neighbor, cellPointB);
-                    neighbor.f = neighbor.g + neighbor.h;
-                    neighbor.previous[charId] = current;
-                }
-            }
-        }
-    }
-}
-function Passenger(id){
-    this.x = 0;
-    this.y = 0;
-    this.takeofX = 0;
-    this.takeofY = 0;
-    this.id = id;
-}
-Passenger.prototype.setRandomPos = function(arr, width){
-    this.x = Math.floor(Math.random()*(arr[0].length-1));
-    this.y = Math.floor(Math.random()*(arr.length-1));
-    while(!arr[this.y]||!arr[this.y][this.x]){
-        this.x = Math.floor(Math.random()*(arr[0].length-1));
-        this.y = Math.floor(Math.random()*(arr.length-1));
-    }
-    this.takeofX = Math.floor(Math.random()*(arr[0].length-1));
-    this.takeofY = Math.floor(Math.random()*(arr.length-1));
-    while(!arr[this.takeofY]||!arr[this.takeofY][this.takeofX]){
-        this.takeofX = Math.floor(Math.random()*(arr[0].length-1));
-        this.takeofY = Math.floor(Math.random()*(arr.length-1));
-    }
-    this.x = this.x*width;
-    this.y = this.y*width;
-    this.takeofX = this.takeofX*width;
-    this.takeofY = this.takeofY*width;
-}
+
 module.exports = Simulation;

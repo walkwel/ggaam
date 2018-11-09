@@ -1,34 +1,47 @@
-import React from 'react';
-import Button from '@material-ui/core/Button'
+import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import { observer } from 'mobx-react';
+import React, { Fragment } from 'react';
+import { NOT_STARTED, PAUSED, PLAY } from './constants';
 
-const ScoreDisplay = ({ store, restartGame, pauseResumeGame, playAsPlayer2, initGame }) => (
-   <div className="score-display">
-    <div> {playAsPlayer2 ? 'Bot' : 'My'} Score: {store.score[0]}</div>
-    <div> Time Left: {store.time} sec </div>
-    <div>
+const ScoreDisplay = ({ store, endGame, pauseResumeGame, playAsPlayer2, gameState, startGame }) => (
+  <Grid container justify="center" alignItems="center" className="score-display">
+    <Grid item xs={4}>
+      <Typography variant="subheading"> Time Left: {store.time} sec </Typography>
+    </Grid>
+    <Grid item xs={4}>
+    {gameState === NOT_STARTED ?
       <Button
         variant="contained"
         color="primary"
-        className="restart"
-        onClick={() => restartGame()}
+        className="start"
+        onClick={() => startGame(PLAY)}
       >
-        {initGame ? 'Start Game' : 'Restart'}
-      </Button>
-      {!initGame && (
+        Start Game
+      </Button> :
+      <Fragment>
         <Button
           variant="contained"
           color="primary"
-          className="pause"
+          className="restart"
+          style={{marginRight: '10px'}}
+          onClick={() => endGame(NOT_STARTED)}
+        >
+          End Game
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          className="restart"
           onClick={() => pauseResumeGame()}
         >
-          {store.mode === 'play' ? 'Pause' : 'Resume'}
+          {gameState === PAUSED ? 'Resume' : 'Pause'}
         </Button>
-      )}
-    </div>
-    <div>Level: {store.currentLevel}</div>
-    <div> {playAsPlayer2 ? 'My' : 'Bot'} Score: {store.score[1]}</div>
-  </div>
+      </Fragment>
+    }
+    </Grid>
+  </Grid>
 )
 
 export default observer(ScoreDisplay);

@@ -9,8 +9,8 @@ import level3 from '../simulation/level3';
 import config from '../simulation/config.json';
 import WinningScreen from './WinningScreen';
 import ScoreDisplay from './ScoreDisplay';
-//eslint-disable-next-line
 import { defaultJavascriptFunctionCode, defaultPythonCodeFunction } from './Components/defaultCode';
+import { NOT_STARTED } from './constants';
 
 const levels = [level1, level2, level3];
 const PLAY = 'play';
@@ -31,8 +31,6 @@ class Updater extends Component {
       },
       gameStopped: true,
     }
-    this.pauseResumeGame = this.pauseResumeGame.bind(this);
-    this.restartGame = this.restartGame.bind(this);
     this.updateStateFromProps = this.updateStateFromProps.bind(this);
   }
 
@@ -62,9 +60,7 @@ class Updater extends Component {
       var data = this.simulation.simulate();
       var gamesQount = 2;
       var charQount = data.bots[0].length;
-
       for (var i = 0; i < gamesQount; i++) {
-        this.props.store.updatePassengers(i, data.collectives[i]);
         this.props.store.updateScore(i, data.score[i]);
         for (var j = 0; j < charQount; j++) {
           // !data.bots[i][j] && console.log(data.bots, i, j)
@@ -119,11 +115,7 @@ class Updater extends Component {
       this.props.store.mode = PAUSE;
     }
   }
-
-  pauseResumeGame() {
-    this.props.store.mode = this.props.store.mode === PLAY ? PAUSE : PLAY;
-  }
-  restartGame(gameState = PLAY) {
+  restartGame = (gameState = PLAY) => {
     this.setState({
       gameOver: {
         status: false,
@@ -172,14 +164,12 @@ class Updater extends Component {
   componentDidMount() {
     this.loopID = this.context.loop.subscribe(this.loop);
     this.updateStateFromProps(this.props);
-    this.restartGame(PAUSE);
   }
   componentWillUnmount() {
     this.context.loop.unsubscribe(this.loopID);
   }
   render() {
-    const {store, playAsPlayer2} = this.props;
-    const {gameOver, gameStopped} = this.state;
+    const {gameOver} = this.state;
     return (
       <Fragment>
         <WinningScreen
@@ -187,12 +177,6 @@ class Updater extends Component {
           restartGame={this.restartGame}
           submitSolution={this.submitSolution}
         />
-        <ScoreDisplay
-          store={store}
-          initGame={gameStopped}
-          playAsPlayer2={playAsPlayer2}
-          restartGame={this.restartGame}
-          pauseResumeGame={this.pauseResumeGame} />
       </Fragment>
     )
   }
