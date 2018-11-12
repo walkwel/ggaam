@@ -1,8 +1,8 @@
 import React from 'react';
 import { Stage } from 'react-game-kit';
-import Tile from './tile';
+import config from '../config';
 import Characters from './characters';
-import config from '../config'
+import Tile from './tile';
 import Updater from './updater.js';
 
 

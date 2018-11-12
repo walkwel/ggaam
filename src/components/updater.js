@@ -20,8 +20,7 @@ class Updater extends Component {
       gameOver: {
         status: false,
         message: ''
-      },
-      gameStopped: true,
+      }
     }
     this.updateStateFromProps = this.updateStateFromProps.bind(this);
   }
@@ -52,7 +51,7 @@ class Updater extends Component {
       this.updatePosition()
     }
     if (this.props.store.needToRestartGame) {
-      if (this.props.playAsPlayer2 && this.props.gameData.playMode === CUSTOM_CODE) {
+      if (this.props.gameData.playMode === CUSTOM_CODE) {
         this.props.store.player2Func = this.props.store.func;
       }
       else if (this.props.gameData.playMode === CUSTOM_CODE) {
@@ -103,23 +102,13 @@ class Updater extends Component {
       this.props.store.scoreToWin = props.gameData.scoreToWin || config.scoreToWin;
       this.props.store.botsQuantity = Math.min(props.gameData.botsQuantities || props.store.botsQuantity, config.maxBotsQuantityPerGame);
       this.props.store.currentLevel = Math.min(Number(props.gameData.levelsToWin) || 1, 3);
-      if (this.props.playAsPlayer2) {
-        if (!props.player1Data.pyCode)
-          this.props.store.player2Func = props.player1Data.jsCode 
-        else {
-          window.createFunctionFromPython(props.player1Data.pyCode);
-          this.props.store.player2Func = window.getPlayersCommands;
-        }
-        this.props.store.player1Func = (props.player2Data || {}).jsCode;
-      } else {
-        if (!props.player1Data.pyCode)
+      if (!props.player1Data.pyCode)
           this.props.store.player1Func = props.player1Data.jsCode 
-        else {
-          window.createFunctionFromPython(props.player1Data.pyCode);
-          this.props.store.player1Func = window.getPlayersCommands;
-        }
-        this.props.store.player2Func = (props.player2Data || {}).jsCode;
+      else {
+        window.createFunctionFromPython(props.player1Data.pyCode);
+        this.props.store.player1Func = window.getPlayersCommands;
       }
+      this.props.store.player2Func = (props.player2Data || {}).jsCode;
       this.restartGame();
     } else {
       this.props.store.mode = PAUSE;
@@ -131,8 +120,7 @@ class Updater extends Component {
         status: false,
         winner: null,
         message: 'Keep Playing'
-      },
-      gameStopped: false
+      }
     })
     this.props.store.score = [0, 0];
     this.props.store.time = this.props.gameData.gameTime || config.time;

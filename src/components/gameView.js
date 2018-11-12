@@ -9,12 +9,12 @@ export default class App extends Component {
   constructor () {
     super()
     this.state = {
-      gameStopped: NOT_STARTED
+      gameState: NOT_STARTED
     }
   }
-  // restart game
+  // end game
   endGame = (gameState = NOT_STARTED) => {
-    this.setState(() => ({gameStopped: gameState}));
+    this.setState(() => ({gameState}));
     this.props.store.resetGame();
     this.props.store.score = [0, 0];
     this.props.store.time = this.props.gameData.gameTime || config.time;
@@ -22,38 +22,25 @@ export default class App extends Component {
   }
   // start game
   startGame = (gameState = NOT_STARTED) => {
-    this.setState(() => ({gameStopped: gameState}));
+    this.setState(() => ({gameState}));
     this.props.store.mode = gameState;
-  }
-  // evaluateStringCode
-  evaluateStringCode = code => {
-    if (typeof code === 'string') {
-      try {
-        // eslint-disable-next-line
-        return eval("(" + code + ")");
-      } catch (error) {
-        return () => { return { right: true } };
-      }
-    }
-    return code;
   }
   // Pause Resume game
   pauseResumeGame = () => {
     this.props.store.mode = this.props.store.mode === PLAY ? PAUSED : PLAY;
-    this.setState(() => ({gameStopped:this.props.store.mode }))
+    this.setState(() => ({gameState: this.props.store.mode }));
   }
 
   render() {
-    const {gameStopped} = this.state;
-    const {playAsPlayer2, store} = this.props;
+    const {gameState} = this.state;
+    const {store} = this.props;
     return (
       <Fragment>
         <Grid container spacing={16}>
           <Grid item xs={12}>
             <ScoreDisplay
               store={store}
-              gameState={gameStopped}
-              playAsPlayer2={playAsPlayer2}
+              gameState={gameState}
               endGame={this.endGame}
               startGame={this.startGame}
               pauseResumeGame={this.pauseResumeGame}
