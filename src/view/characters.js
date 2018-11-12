@@ -1,8 +1,9 @@
 /* eslint-disable */
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import Character from './character';
 import { observer } from 'mobx-react';
+import BlueCar from './Components/Characters/CarBlue';
+import config from '../config';
 
 class Characters extends Component {
   static contextTypes = {
@@ -11,28 +12,20 @@ class Characters extends Component {
   };
   constructor(props) {
     super(props);
-    //this.charactersTypeArr = ['black-car', 'blue-car', 'orange-car', 'white-car'];
-    this.charactersTypeArr = ['orange-car'];
   }
+  componentDidMount () {
+  }
+
   render() {
-    return <Fragment>
-      {this.props.store.position[this.props.gameId].map((pos, index) => {
-      console.log('positions', pos.passenger, this.props.store.botsQuantity);
-        if (index < this.props.store.botsQuantity) {
-          return (
-            <Character
-              key={index}
-              scale={this.context.scale}
-              store={this.props.store}
-              gameId={this.props.gameId}
-              charId={index}
-              type={pos.passenger ? 'orange-car' : 'blue-car'}
-            />
-          )
-        }
-        return false;
-      })}
-    </Fragment>
-  }
+    return (
+      <BlueCar
+        key={0}
+        store={this.props.store}
+        scale={this.context.scale}
+        size={config.playerSize}
+        gameId={this.props.gameId}
+        charId={0}
+      />
+    )}
 }
 export default observer(Characters);

@@ -2,7 +2,7 @@
   "width": 800,
   "height": 480,
   "botsQuantityPerGame": 1,
-  "maxBotsQuantityPerGame": 8,
+  "maxBotsQuantityPerGame": 1,
   "minPassengers": 20,
   "maxPassengers": 30,
   "time": 180,

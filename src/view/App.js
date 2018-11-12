@@ -1,10 +1,9 @@
 import React, { Component, Fragment } from 'react';
 import { Loop } from 'react-game-kit';
-import Updater from './updater.js';
 import Grid from '@material-ui/core/Grid'
 import ScoreDisplay from './ScoreDisplay'
 import {PLAY, NOT_STARTED, PAUSED} from './constants'
-import config from '../simulation/config';
+import config from '../config';
 import GameWindow from './gameWindow';
 export default class App extends Component {
   constructor () {
@@ -64,14 +63,13 @@ export default class App extends Component {
             <div>Not Started</div> )
           : (
             <Loop>
-              <Updater {...this.props}></Updater>
               <Grid container spacing={16}>
                 <Grid item xs={!this.props.gameData.singleWindowGame ? 6 : 12}>
-                  <GameWindow store={this.props.store} />
+                  <GameWindow {...this.props} />
                 </Grid>
                 {!this.props.gameData.singleWindowGame && (
                   <Grid item xs={6}>
-                    <GameWindow store={this.props.store} />
+                    <GameWindow {...this.props} />
                   </Grid>
                 )}
               </Grid>

@@ -1,25 +1,17 @@
 import React, { Component, Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { observer } from 'mobx-react';
-import Simulation from '../simulation/simulation';
-import control from '../simulation/control';
-import level1 from '../simulation/level1';
-import level2 from '../simulation/level2';
-import level3 from '../simulation/level3';
-import config from '../simulation/config.json';
+import config from '../config';
 import WinningScreen from './WinningScreen';
-import ScoreDisplay from './ScoreDisplay';
-import { defaultJavascriptFunctionCode, defaultPythonCodeFunction } from './Components/defaultCode';
-import { NOT_STARTED } from './constants';
+import { PLAY } from './constants';
 
-const levels = [level1, level2, level3];
-const PLAY = 'play';
 const PAUSE = 'pause';
 const CUSTOM_CODE = 'custom code';
 
 class Updater extends Component {
   static contextTypes = {
-    loop: PropTypes.object
+    loop: PropTypes.object,
+    scale: PropTypes.number,
   };
   constructor(props) {
     super(props);
@@ -49,7 +41,7 @@ class Updater extends Component {
             winner: null,
             message: 'Keep Playing'
           };
-      this.setState({ gameOver });
+      this.setState( () => ({ gameOver }));
       if (gameOver.status) {
         this.props.store.mode = PAUSE;
       }
@@ -57,18 +49,7 @@ class Updater extends Component {
         this.props.store.time--;
         this.props.store.prevTime = Date.now();
       }
-      var data = this.simulation.simulate();
-      var gamesQount = 2;
-      var charQount = data.bots[0].length;
-      for (var i = 0; i < gamesQount; i++) {
-        this.props.store.updateScore(i, data.score[i]);
-        for (var j = 0; j < charQount; j++) {
-          // !data.bots[i][j] && console.log(data.bots, i, j)
-          this.props.store.updatePosition(i, j, data.bots[i][j], 1);
-          this.props.store.updateDirection(i, j, data.direction[i][j]);
-          this.props.store.updateDestination(i, j, data.bots[i][j].passenger);
-        }
-      }
+      this.updatePosition()
     }
     if (this.props.store.needToRestartGame) {
       if (this.props.playAsPlayer2 && this.props.gameData.playMode === CUSTOM_CODE) {
@@ -81,8 +62,37 @@ class Updater extends Component {
         this.props.store.player1Func = this.props.store.func;
       this.props.store.needToRestartGame = false;
       this.restartGame();
-
     }
+  }
+  // update player position
+  updatePosition = () => {
+    let {x, y} = this.props.store.position[0];
+    const playerSize = (((config.playerSize / 30) * this.context.scale) * 100);
+    const gameWidth = Math.ceil(config.width * this.context.scale);
+    const gameHeight = Math.ceil(config.height * this.context.scale);
+    switch (this.props.store.direction) {
+      case 'right' :
+        x += config.speed;
+        if(x+playerSize > gameWidth)
+          x = gameWidth - playerSize
+        break;
+      case 'down' :
+        y += config.speed;
+        if(y+playerSize > gameHeight)
+          y = gameHeight - playerSize
+        break;
+      case 'left' :
+      x -= config.speed;
+        if (x < 0)
+          x = 0
+        break;
+      default :
+        y -= config.speed;
+        if (y < 0)
+          y = 0
+        break;
+    }
+    this.props.store.updatePosition(0, 0, {x, y}, 1);
   }
 
   updateStateFromProps(props) {
@@ -95,20 +105,20 @@ class Updater extends Component {
       this.props.store.currentLevel = Math.min(Number(props.gameData.levelsToWin) || 1, 3);
       if (this.props.playAsPlayer2) {
         if (!props.player1Data.pyCode)
-          this.props.store.player2Func = props.gameData.playMode === CUSTOM_CODE ? props.player1Data.jsCode || defaultJavascriptFunctionCode : control;
+          this.props.store.player2Func = props.player1Data.jsCode 
         else {
           window.createFunctionFromPython(props.player1Data.pyCode);
-          this.props.store.player2Func = props.gameData.playMode === CUSTOM_CODE ? window.getPlayersCommands : control;
+          this.props.store.player2Func = window.getPlayersCommands;
         }
-        this.props.store.player1Func = (props.player2Data || {}).jsCode || levels[props.gameData.levelsToWin - 1];
+        this.props.store.player1Func = (props.player2Data || {}).jsCode;
       } else {
         if (!props.player1Data.pyCode)
-          this.props.store.player1Func = props.gameData.playMode === CUSTOM_CODE ? props.player1Data.jsCode || defaultJavascriptFunctionCode : control;
+          this.props.store.player1Func = props.player1Data.jsCode 
         else {
           window.createFunctionFromPython(props.player1Data.pyCode);
-          this.props.store.player1Func = props.gameData.playMode === CUSTOM_CODE ? window.getPlayersCommands : control;
+          this.props.store.player1Func = window.getPlayersCommands;
         }
-        this.props.store.player2Func = (props.player2Data || {}).jsCode || levels[props.gameData.levelsToWin - 1];
+        this.props.store.player2Func = (props.player2Data || {}).jsCode;
       }
       this.restartGame();
     } else {
@@ -126,30 +136,7 @@ class Updater extends Component {
     })
     this.props.store.score = [0, 0];
     this.props.store.time = this.props.gameData.gameTime || config.time;
-    var newConfig = {
-      width: this.props.gameData.singleWindowGame ? config.width * 2 : config.width,
-      ...config
-    };
-    this.simulation = new Simulation(
-      newConfig,
-      this.evaluateStringCode(this.props.store.player1Func),
-      this.evaluateStringCode(this.props.store.player2Func),
-      this.props.gameData.botsQuantities,
-      this.props.gameData.singleWindowGame
-    );
     this.props.store.mode = gameState;
-  }
-  evaluateStringCode = (code) => {
-    if (typeof code === 'string') {
-      try {
-        // eslint-disable-next-line
-        return eval("(" + code + ")");
-      } catch (error) {
-        // console.log(error);
-        return () => { return { right: true } };
-      }
-    }
-    return code;
   }
   submitSolution = () => {
     this.props.onCommit({
@@ -164,9 +151,31 @@ class Updater extends Component {
   componentDidMount() {
     this.loopID = this.context.loop.subscribe(this.loop);
     this.updateStateFromProps(this.props);
+    window.addEventListener('keydown',this.keyListner);
   }
   componentWillUnmount() {
     this.context.loop.unsubscribe(this.loopID);
+    window.removeEventListener('keydown',this.keyListner);
+  }
+  keyListner = (e) => {
+      // if game paused do not update direction
+      if (this.props.store.mode !== PLAY) {
+        return
+      }
+      let direction = 'left';
+      if(e.key==='w'){
+          direction = "up";
+      }
+      else if(e.key==='s'){
+          direction = "down";
+      }
+      else if(e.key==='a'){
+          direction = "left";
+      }
+      else if(e.key==='d'){
+          direction = "right";
+      }
+      this.props.store.updateDirection(0, 0, direction);
   }
   render() {
     const {gameOver} = this.state;
