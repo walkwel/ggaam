@@ -3,9 +3,8 @@ import PropTypes from 'prop-types';
 import { observer } from 'mobx-react';
 import config from '../config';
 import WinningScreen from './WinningScreen';
-import { PLAY } from './constants';
+import { PLAY, PAUSED } from './constants';
 
-const PAUSE = 'pause';
 const CUSTOM_CODE = 'custom code';
 
 class Updater extends Component {
@@ -42,8 +41,9 @@ class Updater extends Component {
           };
       this.setState( () => ({ gameOver }));
       if (gameOver.status) {
-        this.props.store.mode = PAUSE;
+        this.props.store.mode = PAUSED;
       }
+      // update game time
       if (Math.abs(this.props.store.prevTime - Date.now()) >= 1000) {
         this.props.store.time--;
         this.props.store.prevTime = Date.now();
@@ -96,7 +96,7 @@ class Updater extends Component {
 
   updateStateFromProps(props) {
     if (props.player1Data) {
-      this.props.store.mode = PAUSE;
+      this.props.store.mode = PAUSED;
       this.gameTime = this.props.gameData.gameTime || config.time;
       this.props.store.time = this.gameTime;
       this.props.store.scoreToWin = props.gameData.scoreToWin || config.scoreToWin;
@@ -111,7 +111,7 @@ class Updater extends Component {
       this.props.store.player2Func = (props.player2Data || {}).jsCode;
       this.restartGame();
     } else {
-      this.props.store.mode = PAUSE;
+      this.props.store.mode = PAUSED;
     }
   }
   restartGame = (gameState = PLAY) => {
